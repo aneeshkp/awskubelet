@@ -1,0 +1,14 @@
+[all:vars]
+ansible_ssh_common_args=' -o ProxyCommand="ssh -i ~/.ssh/key.pem -W %h:%p ec2-user@xx.xx.xx.xx"'
+#make sure you copy the keys
+[masters]
+10.0.129.112  ansible_user=core
+10.0.159.64   ansible_user=core
+10.0.174.133  ansible_user=core
+
+[workers]
+10.0.174.133  ansible_user=core
+10.0.158.175  ansible_user=core
+10.0.172.132  ansible_user=core
+
+

@@ -1,0 +1,37 @@
+---
+
+- name: aadd
+  hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: get node id
+      shell: curl "http://169.254.169.254/latest/meta-data/local-ipv4"
+      register: nodeip
+    - debug:
+        msg: "variable is  {{ nodeip.stdout_lines[0] }}"
+    - name: Check if node-ip present
+      shell: grep "^node-ip" /etc/systemd/system/kubelet.service | cat
+      register: node_ip_test_grep
+    - debug:
+        var: node_ip_test_grep
+    - name: clear any existing node-ip from kubelet service
+      lineinfile:
+        dest: /etc/systemd/system/kubelet.service
+        regexp: "--node-ip={{ nodeip.stdout_lines[0] }}"
+        state: absent
+    - name: Add node-ip to  kubelet service 
+      lineinfile: 
+        path: /etc/systemd/system/kubelet.service
+        line: "      --node-ip={{ nodeip.stdout_lines[0] }} \\"
+        insertafter: "--config=/etc/kubernetes/kubelet.conf"
+        backup: yes
+      when: node_ip_test_grep.stdout_lines != ""
+    - systemd: 
+        name: kubelet
+        daemon_reload: yes
+        state: restarted 
+
+    
+
+    
